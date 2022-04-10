@@ -12,10 +12,11 @@ public class ShortestPath {
 	public static List<List<Node>> myGraph = new ArrayList<List<Node> >(); //Use this Graph when implementing the shortest path algorithm
 	public static Dijkstra dijkstra; //Will be using Dijkstra's
 	public static ArrayList<Stops> theStops = new ArrayList<Stops>();
+	public static ArrayList<StopTimes> theStopTimes = new ArrayList<StopTimes>();
 	public static double cost;
 	
 	int stopId;
-	int stopCode;
+	int stopCode;// List of variables required
 	String stopName;
 	String stopDesc;
 	double stopLat;
@@ -29,7 +30,7 @@ public class ShortestPath {
 		
 	}
 	
-	static void readingInTheData(){
+	static void readingInTheData(){ //Read in the files and assign them to objects
 		File stops = new File("C:\\Users\\shane\\OneDrive\\Documents\\Algorithms and Data Structures 2\\Assignment 3\\stops.txt");
 		File transfers = new File("C:\\Users\\shane\\OneDrive\\Documents\\Algorithms and Data Structures 2\\Assignment 3\\transfers.txt");
 		File stopTimes = new File("C:\\Users\\shane\\OneDrive\\Documents\\Algorithms and Data Structures 2\\Assignment 3\\stop_times.txt");
@@ -45,7 +46,7 @@ public class ShortestPath {
 			{
 			     String[] information = myStops.nextLine().split(",");
 			     Stops newStop = new Stops();
-			     newStop.setStopId(Integer.parseInt(information[0]));
+			     newStop.setStopId(Integer.parseInt(information[0])); // here we use our stop object class and set everything up
 			     newStop.setStopCode(information[1]);
 			     newStop.setStopName(information[2]);
 			     newStop.setStopDesc(information[3]);
@@ -62,7 +63,7 @@ public class ShortestPath {
 	            List<Node> item = new ArrayList<Node>();
 	            myGraph.add(item);
 	        }
-			dijkstra = new Dijkstra(theStops.size());
+			dijkstra = new Dijkstra(theStops.size()); // preparing our shortest path algorithm
 			i = 0;
 			
 			Scanner myStopTimes = new Scanner(stopTimes);
@@ -71,12 +72,18 @@ public class ShortestPath {
 			int stopIDTwo; 
 			String stopTripIDTwo;
 			myStopTimes.nextLine();
-			String[] informationOne = myStopTimes.nextLine().split(",");
+			String wholeLine = myStopTimes.nextLine();
+			String[] informationOne = wholeLine.split(",");
+			String arrivalTime = informationOne[1];
+			//Reading in the stop times for later use
+			theStopTimes.add(new StopTimes(arrivalTime, wholeLine));
 			while(myStopTimes.hasNextLine())
 			{
 				if(myStopTimes.hasNextLine())
 				{
-					String[] informationTwo = myStopTimes.nextLine().split(",");
+					wholeLine = myStopTimes.nextLine();
+					String[] informationTwo = wholeLine.split(",");
+					arrivalTime = informationTwo[1];
 					stopTripIDOne = informationOne[0];
 					stopTripIDTwo = informationTwo[0];
 					stopIDOne = Integer.parseInt(informationOne[3]);
@@ -85,10 +92,11 @@ public class ShortestPath {
 					{
 						addToGraph(stopIDOne, stopIDTwo, 1);
 					}
+					theStopTimes.add(new StopTimes(arrivalTime, wholeLine));
 				}
 			}
 			
-			
+			//reading in the transfers
 			Scanner myTransfers = new Scanner(transfers);
 			myTransfers.nextLine();
 			while(myTransfers.hasNextLine())
@@ -104,7 +112,7 @@ public class ShortestPath {
 				{
 					cost = Double.parseDouble(information[3])/100;
 				}
-				addToGraph(fromStop, toStop, cost);
+				addToGraph(fromStop, toStop, cost);//adding the direct edges to our graph
 			}
 			myStops.close();
 			myTransfers.close();
@@ -127,7 +135,7 @@ public class ShortestPath {
 		}
 		if(theStops.get(i).getStopId() == fromStop)
 		{
-			firstStopChecker = 1;
+			firstStopChecker = 1;//making sure out point is in the graph
 		}
 		while(j < theStops.size() && theStops.get(j).getStopId() != toStop)
 		{
@@ -139,11 +147,31 @@ public class ShortestPath {
 		}
 		if(firstStopChecker != 0 && secondStopChecker != 0)
 		{
-			myGraph.get(i).add(new Node(j, cost));
+			myGraph.get(i).add(new Node(j, cost));// adding nodes to our graph
 		}
 	}
 	
-	public void applyDijkstra(int source, int to)
+	public void printArrivalTimeInfo(String arrivalTime)
+	{
+		String[] splitUp = arrivalTime.split(":");// for validation of input time
+		if(Integer.parseInt(splitUp[0]) <= 23 && Integer.parseInt(splitUp[1]) <= 59 && Integer.parseInt(splitUp[2]) <= 59
+				&& Integer.parseInt(splitUp[0]) >= 0 && Integer.parseInt(splitUp[1]) >= 0 && Integer.parseInt(splitUp[2]) >= 0)
+		{
+			for(int i = 0; i < theStopTimes.size(); i ++)
+			{
+				if(theStopTimes.get(i).arrivalTime.contains(arrivalTime))
+				{
+					System.out.println(theStopTimes.get(i).wholeLine);
+				}
+			}
+		}
+		else
+		{
+			System.out.println("ERROR - invalid input time !");
+		}
+	}
+	
+	public void applyDijkstra(int source, int to)//applying dijkstra to two bus stops
 	{
 		dijkstra.dijkstra(myGraph, source);
 		double dist = dijkstra.dist[to];

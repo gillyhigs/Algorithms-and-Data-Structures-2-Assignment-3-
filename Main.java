@@ -16,6 +16,7 @@ public class Main {
 					+ "Or enter quit to exit the program ");
 			if(input.hasNext("quit"))
 			{
+				System.out.println("Thank you!");
 				quit = true;
 			}
 			else if(input.hasNext("1"))
@@ -39,15 +40,20 @@ public class Main {
 			}
 			else if(input.hasNext("2"))
 			{
-				
+				System.out.println("Please enter your String");
+				input.next();
 			}
 			else if(input.hasNext("3"))
 			{
-				
+				input.next();
+				System.out.println("Please input the input time in the form hh:mm:ss");
+				String stopTime = input.next();
+				shortPath.printArrivalTimeInfo(stopTime);
 			}
 			else
 			{
 				System.out.println("ERROR - Invalid input");
+				input.next();
 			}
 		}
 
