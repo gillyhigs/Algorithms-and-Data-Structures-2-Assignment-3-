@@ -9,7 +9,11 @@ import java.util.Scanner;
 
 public class ShortestPath {
 
+	public static List<List<Node>> myGraph = new ArrayList<List<Node> >(); //Use this Graph when implementing the shortest path algorithm
+	public static Dijkstra dijkstra; //Will be using Dijkstra's
 	public static ArrayList<Stops> theStops = new ArrayList<Stops>();
+	public static double cost;
+	
 	int stopId;
 	int stopCode;
 	String stopName;
@@ -29,9 +33,9 @@ public class ShortestPath {
 		File stops = new File("C:\\Users\\shane\\OneDrive\\Documents\\Algorithms and Data Structures 2\\Assignment 3\\stops.txt");
 		File transfers = new File("C:\\Users\\shane\\OneDrive\\Documents\\Algorithms and Data Structures 2\\Assignment 3\\transfers.txt");
 		File stopTimes = new File("C:\\Users\\shane\\OneDrive\\Documents\\Algorithms and Data Structures 2\\Assignment 3\\stop_times.txt");
-		int regularCount = 0;
-		int stopCheckerOne = 0;
-		int stopCheckerTwo = 0;
+		int fromStop = 0;
+		int toStop = 0;
+		double cost;
 		int i = 0;
 		int j = 0;
 		try {
@@ -53,35 +57,115 @@ public class ShortestPath {
 			     newStop.setParentStation(information[8]);
 			     theStops.add(newStop);
 			 }
+			
+			for (i = 0; i < theStops.size(); i++) {
+	            List<Node> item = new ArrayList<Node>();
+	            myGraph.add(item);
+	        }
+			dijkstra = new Dijkstra(theStops.size());
+			i = 0;
+			
+			Scanner myStopTimes = new Scanner(stopTimes);
+			String stopTripIDOne;
+			int stopIDOne;
+			int stopIDTwo; 
+			String stopTripIDTwo;
+			myStopTimes.nextLine();
+			String[] informationOne = myStopTimes.nextLine().split(",");
+			while(myStopTimes.hasNextLine())
+			{
+				if(myStopTimes.hasNextLine())
+				{
+					String[] informationTwo = myStopTimes.nextLine().split(",");
+					stopTripIDOne = informationOne[0];
+					stopTripIDTwo = informationTwo[0];
+					stopIDOne = Integer.parseInt(informationOne[3]);
+					stopIDTwo = Integer.parseInt(informationTwo[3]);
+					if(stopTripIDOne == stopTripIDTwo)
+					{
+						addToGraph(stopIDOne, stopIDTwo, 1);
+					}
+				}
+			}
+			
+			
 			Scanner myTransfers = new Scanner(transfers);
 			myTransfers.nextLine();
 			while(myTransfers.hasNextLine())
 			{
-				String[] information = myStops.nextLine().split(",");
-				while(i < theStops.size() && Integer.parseInt(information[0]) != theStops.get(i).getStopId())
+				String[] information = myTransfers.nextLine().split(",");
+				fromStop = Integer.parseInt(information[0]);
+				toStop = Integer.parseInt(information[1]);
+				if(Integer.parseInt(information[2]) == 0)
 				{
-					i++;
+					cost = 2;
 				}
-				if(Integer.parseInt(information[0]) == theStops.get(i).getStopId())
+				else
 				{
-					stopCheckerOne = 1;
+					cost = Double.parseDouble(information[3])/100;
 				}
-				while(j < theStops.size() && Integer.parseInt(information[1]) != theStops.get(j).getStopId())
-				{
-					j++;
-				}
-				if(Integer.parseInt(information[1]) == theStops.get(j).getStopId())
-				{
-					stopCheckerTwo = 1;
-				}
-				if(stopCheckerOne == 1 && stopCheckerTwo == 1)
-				{
-					
-				}
+				addToGraph(fromStop, toStop, cost);
 			}
+			myStops.close();
+			myTransfers.close();
+			myStopTimes.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static void addToGraph(int fromStop, int toStop, double cost)
+	{
+		int i = 0;
+		int j = 0;
+		int firstStopChecker = 0;
+		int secondStopChecker = 0;
+		while(i < theStops.size() && theStops.get(i).getStopId() != fromStop)
+		{
+			i++;
+		}
+		if(theStops.get(i).getStopId() == fromStop)
+		{
+			firstStopChecker = 1;
+		}
+		while(j < theStops.size() && theStops.get(j).getStopId() != toStop)
+		{
+			j++;
+		}
+		if(theStops.get(j).getStopId() == toStop)
+		{
+			secondStopChecker = 1;
+		}
+		if(firstStopChecker != 0 && secondStopChecker != 0)
+		{
+			myGraph.get(i).add(new Node(j, cost));
+		}
+	}
+	
+	public void applyDijkstra(int source, int to)
+	{
+		dijkstra.dijkstra(myGraph, source);
+		double dist = dijkstra.dist[to];
+		if(dist < Integer.MAX_VALUE)
+		{
+			System.out.println(dist);
+		}
+		else
+		{
+			System.out.println("ERROR - No route exists");
+		}
+	}
+	
+	public static int getStopId(int stopID) {
+		for(int i = 0; i < theStops.size(); i++)
+		{
+			if(theStops.get(i).getStopId() == stopID)
+			{
+				return i;
+			}
+		}
+		return -1;
+		
 	}
 }
